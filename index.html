@@ -1,0 +1,1404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Team Fusion Challenge 2026</title>
+<link href="https://fonts.googleapis.com/css2?family=Bangers&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --green:#16A34A;--gl:#DCFCE7;
+  --yellow:#CA8A04;--yl:#FEF9C3;
+  --blue:#1D4ED8;--bl:#DBEAFE;
+  --red:#DC2626;--rl:#FEE2E2;
+  --dark:#0F172A;--bg:#FFFDF5;
+  --gold:#FBBF24;--slate:#64748B;
+  --purple:#7C3AED;--pl:#EDE9FE;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Nunito',sans-serif;background:linear-gradient(135deg,#0F2027,#203A43,#2C5364);min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:20px 14px;}
+
+.page-title{font-family:'Bangers',cursive;font-size:clamp(1.8rem,5vw,3rem);letter-spacing:4px;color:#FFF;text-shadow:3px 3px 0 #16A34A;margin-bottom:2px;text-align:center;}
+.page-sub{color:#94A3B8;font-size:0.85rem;font-weight:700;margin-bottom:18px;text-align:center;text-transform:uppercase;letter-spacing:1px;}
+
+/* ── TABS ── */
+.tabs{display:flex;gap:6px;margin-bottom:18px;flex-wrap:wrap;justify-content:center;}
+.tab-btn{font-family:'Bangers',cursive;font-size:1rem;letter-spacing:2px;padding:9px 22px;border-radius:50px;border:none;cursor:pointer;transition:all 0.2s;background:rgba(255,255,255,0.1);color:#94A3B8;}
+.tab-btn.active{background:linear-gradient(135deg,#16A34A,#1D4ED8);color:#fff;box-shadow:0 4px 20px rgba(0,0,0,0.3);}
+.tab-btn.atab{background:rgba(220,38,38,0.15);color:#F87171;}
+.tab-btn.atab.active{background:linear-gradient(135deg,#DC2626,#7C3AED);}
+.view{display:none;width:100%;max-width:640px;}
+.view.active{display:block;}
+
+/* ── CARD ── */
+.card{background:var(--bg);border-radius:20px;width:100%;box-shadow:0 25px 60px rgba(0,0,0,0.5);overflow:hidden;border:3px solid #FFF;}
+.card-header{background:linear-gradient(135deg,#16A34A,#1D4ED8);padding:14px 18px;display:flex;align-items:center;justify-content:space-between;gap:10px;}
+.team-label{font-weight:900;font-size:0.8rem;color:rgba(255,255,255,0.8);text-transform:uppercase;letter-spacing:1px;}
+.tname-input{font-family:'Bangers',cursive;font-size:1.4rem;letter-spacing:2px;color:#FFF;background:rgba(255,255,255,0.15);border:2px dashed rgba(255,255,255,0.5);border-radius:8px;padding:4px 10px;width:180px;outline:none;text-align:center;}
+.tname-input::placeholder{color:rgba(255,255,255,0.4);}
+.tname-input:focus{border-color:#FFF;background:rgba(255,255,255,0.25);}
+.score-pill{background:rgba(0,0,0,0.3);border-radius:50px;padding:5px 14px;text-align:center;min-width:76px;}
+.score-lbl{font-size:0.58rem;color:rgba(255,255,255,0.7);text-transform:uppercase;letter-spacing:1px;font-weight:700;}
+.score-val{font-family:'Bangers',cursive;font-size:1.9rem;color:var(--gold);letter-spacing:2px;line-height:1;}
+
+/* ── WAITING SPLASH ── */
+.waiting-splash{padding:44px 20px;text-align:center;}
+.ws-icon{font-size:3.5rem;margin-bottom:12px;display:block;animation:float 2.2s ease-in-out infinite;}
+@keyframes float{0%,100%{transform:translateY(0);}50%{transform:translateY(-9px);}}
+.ws-title{font-family:'Bangers',cursive;font-size:1.7rem;letter-spacing:3px;color:var(--dark);margin-bottom:6px;}
+.ws-sub{font-size:0.88rem;color:var(--slate);font-weight:700;line-height:1.5;}
+
+/* ── ROUND BLOCKS ── */
+/* Default: hidden. Only shown when admin starts timer */
+.round-block{display:none;border-bottom:1px solid #E2E8F0;}
+.round-block.rb-visible{display:block;}
+/* locked state after expiry */
+.round-block.rb-locked .tasks-list{pointer-events:none;}
+.round-block.rb-locked .task-item:not(.done){opacity:0.38;filter:grayscale(0.5);}
+.round-block.rb-locked .task-item.done{opacity:0.6;}
+
+/* ── SECTION HEADERS ── */
+.section-header{display:flex;align-items:center;gap:8px;padding:10px 18px 7px;border-bottom:2px solid currentColor;}
+.section-header .ico{font-size:1.1rem;}
+.section-header h2{font-family:'Bangers',cursive;font-size:1.15rem;letter-spacing:2px;flex:1;}
+.pts-badge{font-size:0.65rem;font-weight:900;padding:3px 9px;border-radius:20px;text-transform:uppercase;letter-spacing:1px;}
+.sg .section-header{background:var(--gl);color:var(--green);border-color:var(--green);}
+.sg .pts-badge{background:var(--green);color:#fff;}
+.sy .section-header{background:var(--yl);color:var(--yellow);border-color:var(--yellow);}
+.sy .pts-badge{background:var(--yellow);color:#fff;}
+.sb .section-header{background:var(--bl);color:var(--blue);border-color:var(--blue);}
+.sb .pts-badge{background:var(--blue);color:#fff;}
+.sr .section-header{background:var(--rl);color:var(--red);border-color:var(--red);}
+.sr .pts-badge{background:var(--red);color:#fff;}
+
+/* ── TIMER STRIP ── */
+.timer-strip{display:flex;align-items:center;gap:10px;padding:7px 18px;font-size:0.82rem;font-weight:800;}
+.sg .timer-strip{background:#F0FDF4;color:var(--green);}
+.sy .timer-strip{background:#FEFCE8;color:var(--yellow);}
+.sb .timer-strip{background:#EFF6FF;color:var(--blue);}
+.sr .timer-strip{background:#FFF5F5;color:var(--red);}
+.t-clock{font-family:'Bangers',cursive;font-size:1.4rem;letter-spacing:2px;min-width:70px;}
+.t-clock.urgent{color:var(--red);animation:blink 0.6s infinite alternate;}
+@keyframes blink{from{opacity:1;}to{opacity:0.4;}}
+.t-bar-bg{flex:1;height:8px;background:rgba(0,0,0,0.08);border-radius:20px;overflow:hidden;}
+.t-bar-fill{height:100%;border-radius:20px;transition:width 1s linear;}
+.sg .t-bar-fill{background:var(--green);}
+.sy .t-bar-fill{background:var(--yellow);}
+.sb .t-bar-fill{background:var(--blue);}
+.sr .t-bar-fill{background:var(--red);}
+.t-bar-fill.urgent{background:var(--red)!important;}
+.t-lbl{font-size:0.72rem;font-weight:800;white-space:nowrap;}
+
+.locked-banner{display:none;align-items:center;justify-content:center;gap:8px;padding:9px 18px;font-family:'Bangers',cursive;font-size:1rem;letter-spacing:2px;background:#1E293B;color:#F87171;}
+.locked-banner.show{display:flex;}
+
+/* ── TASKS LIST ── */
+.tasks-list{padding:8px 13px 10px;}
+.task-item{border-radius:12px;margin-bottom:8px;border:2px solid transparent;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,0.07);overflow:hidden;transition:border-color 0.2s,background 0.2s;}
+.task-item.done{opacity:0.75;}
+.sg .task-item.done{background:var(--gl);border-color:var(--green);}
+.sy .task-item.done{background:var(--yl);border-color:var(--yellow);}
+.sb .task-item.done{background:var(--bl);border-color:var(--blue);}
+.sr .task-item.done{background:var(--rl);border-color:var(--red);}
+
+/* Task top row — click to open upload panel */
+.task-top{display:flex;align-items:center;gap:10px;padding:10px 12px;cursor:pointer;user-select:none;}
+.task-top:hover{background:rgba(0,0,0,0.02);}
+.chk{width:26px;height:26px;border-radius:6px;border:3px solid #CBD5E1;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:1rem;color:#fff;transition:all 0.2s;}
+.sg .task-item.done .chk{background:var(--green);border-color:var(--green);}
+.sy .task-item.done .chk{background:var(--yellow);border-color:var(--yellow);}
+.sb .task-item.done .chk{background:var(--blue);border-color:var(--blue);}
+.sr .task-item.done .chk{background:var(--red);border-color:var(--red);}
+.task-txt{flex:1;font-size:0.88rem;font-weight:700;color:var(--dark);line-height:1.3;}
+.pts-chip{font-family:'Bangers',cursive;font-size:0.95rem;letter-spacing:1px;padding:2px 9px;border-radius:20px;white-space:nowrap;}
+.sg .pts-chip{background:var(--gl);color:var(--green);}
+.sy .pts-chip{background:var(--yl);color:var(--yellow);}
+.sb .pts-chip{background:var(--bl);color:var(--blue);}
+.sr .pts-chip{background:var(--rl);color:var(--red);}
+.expand-icon{font-size:0.8rem;color:#94A3B8;transition:transform 0.2s;flex-shrink:0;}
+.task-item.panel-open .expand-icon{transform:rotate(180deg);}
+
+/* ── UPLOAD PANEL ── */
+.upload-panel{display:none;border-top:2px dashed #E2E8F0;padding:12px 13px;background:#F8FAFC;}
+.task-item.panel-open .upload-panel{display:block;}
+.up-label{font-size:0.78rem;font-weight:900;color:var(--slate);margin-bottom:8px;display:flex;align-items:center;gap:5px;}
+.up-label .req{color:var(--red);}
+
+/* Dropzone */
+.dropzone{position:relative;border:2px dashed #CBD5E1;border-radius:10px;padding:16px 12px;text-align:center;cursor:pointer;background:#fff;transition:all 0.2s;}
+.dropzone:hover,.dropzone.over{border-color:var(--purple);background:var(--pl);}
+.dropzone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
+.dz-ico{font-size:2rem;display:block;margin-bottom:4px;}
+.dz-main{font-size:0.82rem;font-weight:800;color:var(--slate);}
+.dz-hint{font-size:0.7rem;color:#94A3B8;margin-top:2px;}
+
+/* Preview */
+.up-preview{display:none;margin-top:8px;align-items:center;gap:9px;background:#fff;border-radius:8px;padding:8px 10px;border:2px solid #E2E8F0;}
+.up-preview.show{display:flex;}
+.prev-thumb{width:42px;height:42px;border-radius:7px;object-fit:cover;flex-shrink:0;background:#F1F5F9;display:flex;align-items:center;justify-content:center;font-size:1.5rem;}
+.prev-info{flex:1;min-width:0;}
+.prev-name{font-size:0.78rem;font-weight:800;color:var(--dark);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.prev-size{font-size:0.68rem;color:#94A3B8;margin-top:1px;font-weight:600;}
+.prev-rm{background:#FEE2E2;border:none;border-radius:6px;width:26px;height:26px;color:#DC2626;cursor:pointer;font-size:0.9rem;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.2s;}
+.prev-rm:hover{background:#DC2626;color:#fff;}
+
+/* Confirm button */
+.up-confirm{width:100%;margin-top:8px;font-family:'Bangers',cursive;font-size:1rem;letter-spacing:2px;border:none;border-radius:8px;padding:10px;cursor:pointer;color:#fff;transition:all 0.2s;}
+.sg .up-confirm{background:var(--green);}
+.sy .up-confirm{background:var(--yellow);}
+.sb .up-confirm{background:var(--blue);}
+.sr .up-confirm{background:var(--red);}
+.up-confirm:disabled{opacity:0.35;cursor:not-allowed;}
+.up-confirm:not(:disabled):hover{filter:brightness(1.1);}
+
+/* Done badge shown after completion */
+.up-done{display:none;margin-top:6px;align-items:center;gap:6px;font-size:0.75rem;font-weight:800;color:var(--slate);}
+.up-done.show{display:flex;}
+.up-done .fname{max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--blue);text-decoration:underline;cursor:pointer;}
+
+.bonus-note{background:#FFF7ED;border-left:4px solid var(--red);margin:0 13px 8px;padding:7px 11px;border-radius:0 8px 8px 0;font-size:0.78rem;font-weight:700;color:var(--red);}
+.section-divider{height:4px;}
+
+/* ── SAVE BAR ── */
+.save-bar{background:var(--dark);padding:11px 15px;display:flex;align-items:center;gap:10px;}
+.prog-wrap{flex:1;}
+.prog-lbl{font-size:0.68rem;color:#94A3B8;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;}
+.prog-bg{background:#1E293B;border-radius:20px;height:7px;overflow:hidden;}
+.prog-fill{height:100%;border-radius:20px;background:linear-gradient(90deg,#16A34A,#1D4ED8);transition:width 0.5s cubic-bezier(0.34,1.56,0.64,1);width:0%;}
+.prog-count{font-size:0.68rem;color:#64748B;margin-top:3px;font-weight:600;}
+.save-btn{font-family:'Bangers',cursive;font-size:1rem;letter-spacing:2px;background:linear-gradient(135deg,#16A34A,#1D4ED8);color:#fff;border:none;border-radius:10px;padding:9px 16px;cursor:pointer;transition:all 0.2s;white-space:nowrap;}
+.save-btn:hover{transform:scale(1.05);}
+.save-btn:disabled{opacity:0.5;cursor:not-allowed;transform:none;}
+.save-status{font-size:0.75rem;color:#4ADE80;font-weight:700;text-align:center;padding:4px 14px 7px;background:var(--dark);display:none;}
+.save-status.show{display:block;}
+.confetti-msg{display:none;text-align:center;padding:11px;background:linear-gradient(135deg,#16A34A,#1D4ED8);color:#fff;font-family:'Bangers',cursive;font-size:1.3rem;letter-spacing:3px;animation:pulse 0.6s infinite alternate;}
+.confetti-msg.show{display:block;}
+@keyframes pulse{from{opacity:0.85;}to{opacity:1;}}
+.tasks-updated-banner{display:none;background:var(--pl);border-left:4px solid var(--purple);padding:8px 14px;font-size:0.8rem;font-weight:800;color:var(--purple);}
+.tasks-updated-banner.show{display:block;}
+
+/* ── LEADERBOARD ── */
+.lb-card{background:var(--bg);border-radius:20px;width:100%;box-shadow:0 25px 60px rgba(0,0,0,0.5);border:3px solid #FFF;overflow:hidden;}
+.lb-hdr{background:linear-gradient(135deg,#1D4ED8,#16A34A);padding:16px 22px;text-align:center;}
+.lb-title{font-family:'Bangers',cursive;font-size:1.9rem;letter-spacing:4px;color:#FFF;text-shadow:2px 2px 0 rgba(0,0,0,0.3);}
+.lb-sub{color:rgba(255,255,255,0.75);font-size:0.82rem;font-weight:700;margin-top:2px;}
+.lb-refresh-row{display:flex;justify-content:flex-end;padding:9px 14px 0;}
+.ref-btn{background:transparent;border:2px solid #334155;color:#64748B;border-radius:8px;padding:6px 13px;font-family:'Nunito',sans-serif;font-weight:800;font-size:0.78rem;cursor:pointer;transition:all 0.2s;text-transform:uppercase;letter-spacing:1px;}
+.ref-btn:hover{border-color:var(--blue);color:var(--blue);}
+.lb-list{padding:10px 14px 18px;display:flex;flex-direction:column;gap:9px;}
+.lb-row{display:flex;align-items:center;gap:11px;background:#fff;border-radius:14px;padding:11px 14px;box-shadow:0 2px 8px rgba(0,0,0,0.08);border:2px solid transparent;}
+.lb-row.r1{border-color:#FBBF24;background:#FFFBEB;box-shadow:0 4px 20px rgba(251,191,36,0.3);}
+.lb-row.r2{border-color:#94A3B8;background:#F8FAFC;}
+.lb-row.r3{border-color:#CD7F32;background:#FFF8F5;}
+.rank-ico{font-family:'Bangers',cursive;font-size:1.4rem;width:34px;text-align:center;}
+.r1 .rank-ico{color:#FBBF24;} .r2 .rank-ico{color:#94A3B8;} .r3 .rank-ico{color:#CD7F32;}
+.lb-info{flex:1;}
+.lb-tname{font-family:'Bangers',cursive;font-size:1.2rem;letter-spacing:2px;color:var(--dark);}
+.lb-tcount{font-size:0.75rem;color:#64748B;font-weight:600;margin-top:1px;}
+.lb-bar-bg{margin-top:5px;background:#F1F5F9;border-radius:20px;height:6px;overflow:hidden;}
+.lb-bar-fill{height:100%;border-radius:20px;background:linear-gradient(90deg,#16A34A,#1D4ED8);transition:width 0.6s ease;}
+.lb-score-col{text-align:right;}
+.lb-score{font-family:'Bangers',cursive;font-size:1.9rem;letter-spacing:2px;}
+.r1 .lb-score{color:#FBBF24;} .r2 .lb-score{color:#94A3B8;} .r3 .lb-score{color:#CD7F32;}
+.lb-row:not(.r1):not(.r2):not(.r3) .lb-score{color:var(--blue);}
+.lb-pts-lbl{font-size:0.65rem;color:#94A3B8;font-weight:700;text-transform:uppercase;}
+.lb-empty{text-align:center;padding:38px 20px;color:#94A3B8;font-weight:700;}
+.lb-loading{text-align:center;padding:28px;color:#64748B;font-weight:700;}
+.lb-updated{text-align:center;padding:9px;font-size:0.72rem;color:#94A3B8;font-weight:600;border-top:1px solid #F1F5F9;}
+/* speed bonus badges */
+.lb-speed-row{display:flex;align-items:center;gap:6px;margin-top:4px;flex-wrap:wrap;}
+.speed-badge{font-size:0.65rem;font-weight:900;padding:2px 7px;border-radius:20px;letter-spacing:0.5px;white-space:nowrap;}
+.speed-badge.fast{background:linear-gradient(135deg,#FEF9C3,#FEF08A);color:#A16207;border:1.5px solid #FBBF24;}
+.speed-badge.boost{background:linear-gradient(135deg,#DCFCE7,#BBF7D0);color:#15803D;border:1.5px solid #4ADE80;}
+.speed-badge.first{background:linear-gradient(135deg,#FFF7ED,#FED7AA);color:#C2410C;border:1.5px solid #FB923C;animation:pulse 1s infinite alternate;}
+.lb-speed-bonus{font-family:'Bangers',cursive;font-size:0.72rem;color:#16A34A;letter-spacing:1px;}
+.lb-total-score{font-family:'Bangers',cursive;font-size:1.9rem;letter-spacing:2px;}
+.r1 .lb-total-score{color:#FBBF24;} .r2 .lb-total-score{color:#94A3B8;} .r3 .lb-total-score{color:#CD7F32;}
+.lb-row:not(.r1):not(.r2):not(.r3) .lb-total-score{color:var(--blue);}
+.lb-score-breakdown{font-size:0.62rem;color:#94A3B8;font-weight:700;margin-top:1px;}
+.lb-legend{background:#F8FAFC;border-top:1px solid #E2E8F0;padding:10px 16px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+.lb-legend-title{font-size:0.68rem;font-weight:900;color:#64748B;text-transform:uppercase;letter-spacing:1px;}
+.lb-legend-item{font-size:0.68rem;font-weight:700;color:#64748B;display:flex;align-items:center;gap:4px;}
+
+/* ── ADMIN ── */
+.admin-card{background:var(--bg);border-radius:20px;width:100%;box-shadow:0 25px 60px rgba(0,0,0,0.5);border:3px solid #F87171;overflow:hidden;}
+.admin-hdr{background:linear-gradient(135deg,#DC2626,#7C3AED);padding:16px 22px;text-align:center;}
+.admin-title{font-family:'Bangers',cursive;font-size:1.9rem;letter-spacing:4px;color:#FFF;}
+.admin-subtitle{color:rgba(255,255,255,0.75);font-size:0.82rem;font-weight:700;margin-top:2px;}
+.admin-body{padding:18px;}
+.pass-row{display:flex;gap:10px;margin-bottom:16px;}
+.pass-input{flex:1;font-family:'Nunito',sans-serif;font-size:1rem;font-weight:700;background:#F8FAFC;border:2px solid #CBD5E1;border-radius:10px;padding:10px 14px;outline:none;color:var(--dark);}
+.pass-input:focus{border-color:var(--purple);}
+.unlock-btn{font-family:'Bangers',cursive;font-size:1rem;letter-spacing:2px;background:linear-gradient(135deg,#DC2626,#7C3AED);color:#fff;border:none;border-radius:10px;padding:10px 18px;cursor:pointer;}
+.admin-locked-msg{text-align:center;padding:30px;color:#94A3B8;font-weight:700;}
+.admin-controls{display:none;}
+.admin-controls.show{display:block;}
+.a-tabs{display:flex;gap:6px;margin-bottom:16px;}
+.a-tab-btn{font-family:'Bangers',cursive;font-size:0.95rem;letter-spacing:2px;padding:8px 18px;border-radius:50px;border:none;cursor:pointer;transition:all 0.2s;background:#F1F5F9;color:#64748B;flex:1;}
+.a-tab-btn.active{background:linear-gradient(135deg,#DC2626,#7C3AED);color:#fff;}
+.a-panel{display:none;}
+.a-panel.active{display:block;}
+.a-sec-title{font-family:'Bangers',cursive;font-size:1.2rem;letter-spacing:2px;color:#DC2626;margin-bottom:12px;padding-bottom:6px;border-bottom:2px solid #FEE2E2;}
+.a-sec-title.purple{color:var(--purple);border-color:var(--pl);}
+.round-ctrl{background:#F8FAFC;border-radius:14px;padding:14px;margin-bottom:10px;border:2px solid #E2E8F0;}
+.rch{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.rc-name{font-family:'Bangers',cursive;font-size:1.05rem;letter-spacing:1px;}
+.rc-status{font-size:0.7rem;font-weight:800;padding:3px 10px;border-radius:20px;text-transform:uppercase;letter-spacing:1px;}
+.s-idle{background:#F1F5F9;color:#64748B;}
+.s-run{background:#DCFCE7;color:#16A34A;}
+.s-exp{background:#FEE2E2;color:#DC2626;}
+.ctrl-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.ctrl-lbl{font-size:0.8rem;font-weight:700;color:var(--slate);min-width:70px;}
+.dur-input{font-family:'Nunito',sans-serif;font-size:0.9rem;font-weight:800;background:#fff;border:2px solid #CBD5E1;border-radius:8px;padding:5px 10px;width:80px;outline:none;color:var(--dark);}
+.dur-input:focus{border-color:var(--blue);}
+.ctrl-unit{font-size:0.8rem;color:#94A3B8;font-weight:700;}
+.ctrl-btn{font-family:'Bangers',cursive;font-size:0.85rem;letter-spacing:1px;border:none;border-radius:8px;padding:6px 14px;cursor:pointer;transition:all 0.2s;white-space:nowrap;}
+.btn-go{background:#16A34A;color:#fff;}
+.btn-stop{background:#DC2626;color:#fff;}
+.btn-rst{background:#64748B;color:#fff;}
+.ctrl-btn:hover{transform:scale(1.05);}
+.ctrl-btn:disabled{opacity:0.4;cursor:not-allowed;transform:none;}
+.global-row{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap;}
+.g-btn{font-family:'Bangers',cursive;font-size:1rem;letter-spacing:2px;border:none;border-radius:10px;padding:10px 18px;cursor:pointer;transition:all 0.2s;flex:1;}
+.g-go{background:linear-gradient(135deg,#16A34A,#1D4ED8);color:#fff;}
+.g-stop{background:linear-gradient(135deg,#DC2626,#F97316);color:#fff;}
+.g-btn:hover{transform:scale(1.02);}
+.admin-warn{background:#FFF7ED;border:2px solid #FB923C;border-radius:10px;padding:10px 14px;font-size:0.8rem;font-weight:700;color:#C2410C;margin-bottom:14px;}
+
+/* Task Editor */
+.te-sec{margin-bottom:14px;}
+.te-hdr{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-radius:12px 12px 0 0;cursor:pointer;user-select:none;}
+.te-hdr h3{font-family:'Bangers',cursive;font-size:1.05rem;letter-spacing:2px;}
+.te-hdr .tgl{font-size:0.9rem;transition:transform 0.2s;}
+.te-hdr.collapsed .tgl{transform:rotate(-90deg);}
+.te-gh{background:var(--gl);color:var(--green);}
+.te-yh{background:var(--yl);color:var(--yellow);}
+.te-bh{background:var(--bl);color:var(--blue);}
+.te-rh{background:var(--rl);color:var(--red);}
+.te-wrap{border:2px solid #E2E8F0;border-top:none;border-radius:0 0 12px 12px;overflow:hidden;}
+.te-wrap.hidden{display:none;}
+.te-row{display:flex;align-items:center;gap:7px;padding:8px 10px;border-bottom:1px solid #F1F5F9;background:#fff;}
+.te-row:last-child{border-bottom:none;}
+.te-tinput{flex:1;font-family:'Nunito',sans-serif;font-size:0.85rem;font-weight:700;background:#F8FAFC;border:2px solid #E2E8F0;border-radius:8px;padding:6px 9px;outline:none;color:var(--dark);}
+.te-tinput:focus{border-color:var(--purple);background:#fff;}
+.te-pinput{font-family:'Nunito',sans-serif;font-size:0.85rem;font-weight:800;background:#F8FAFC;border:2px solid #E2E8F0;border-radius:8px;padding:6px 6px;width:60px;outline:none;color:var(--dark);text-align:center;}
+.te-pinput:focus{border-color:var(--purple);background:#fff;}
+.te-plbl{font-size:0.72rem;color:#94A3B8;font-weight:700;}
+.te-del{background:#FEE2E2;border:none;border-radius:7px;width:28px;height:28px;color:#DC2626;cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.2s;}
+.te-del:hover{background:#DC2626;color:#fff;}
+.te-add-row{display:flex;gap:7px;padding:9px 10px;background:#F8FAFC;align-items:center;}
+.te-ai{flex:1;font-family:'Nunito',sans-serif;font-size:0.83rem;font-weight:700;background:#fff;border:2px dashed #CBD5E1;border-radius:8px;padding:7px 9px;outline:none;color:var(--dark);}
+.te-ai:focus{border-color:var(--purple);border-style:solid;}
+.te-ap{font-family:'Nunito',sans-serif;font-size:0.83rem;font-weight:800;background:#fff;border:2px dashed #CBD5E1;border-radius:8px;padding:7px 6px;width:60px;outline:none;color:var(--dark);text-align:center;}
+.te-ap:focus{border-color:var(--purple);border-style:solid;}
+.te-add-btn{font-family:'Bangers',cursive;font-size:0.85rem;letter-spacing:1px;background:var(--purple);color:#fff;border:none;border-radius:8px;padding:7px 13px;cursor:pointer;white-space:nowrap;transition:all 0.2s;}
+.te-add-btn:hover{transform:scale(1.05);}
+.te-pub-row{display:flex;gap:8px;margin-top:14px;}
+.te-pub-btn{font-family:'Bangers',cursive;font-size:1rem;letter-spacing:2px;background:linear-gradient(135deg,var(--purple),var(--blue));color:#fff;border:none;border-radius:10px;padding:11px 20px;cursor:pointer;flex:1;transition:all 0.2s;}
+.te-pub-btn:hover{transform:scale(1.02);}
+.te-res-btn{font-family:'Bangers',cursive;font-size:1rem;letter-spacing:2px;background:#F1F5F9;color:#64748B;border:2px solid #CBD5E1;border-radius:10px;padding:11px 14px;cursor:pointer;transition:all 0.2s;}
+.te-res-btn:hover{border-color:#DC2626;color:#DC2626;}
+.te-status{font-size:0.78rem;font-weight:700;text-align:center;padding:8px;border-radius:8px;margin-top:8px;display:none;}
+.te-status.ok{display:block;background:#DCFCE7;color:#16A34A;}
+.te-status.err{display:block;background:#FEE2E2;color:#DC2626;}
+.te-hint{font-size:0.78rem;color:#64748B;font-weight:700;margin-bottom:14px;background:#F8FAFC;border-radius:8px;padding:8px 12px;border-left:3px solid var(--purple);}
+
+/* ── DRIVE SETUP BANNER ── */
+.drive-setup{background:#1E293B;padding:12px 15px;border-top:1px solid #334155;}
+.drive-setup-inner{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.drive-dot{width:10px;height:10px;border-radius:50%;background:#64748B;flex-shrink:0;transition:background 0.4s;}
+.drive-dot.ok{background:#16A34A;}
+.drive-dot.busy{background:#FBBF24;animation:blink 0.7s infinite alternate;}
+.drive-dot.err{background:#DC2626;}
+.drive-txt{flex:1;font-size:0.75rem;font-weight:700;color:#94A3B8;line-height:1.4;}
+.drive-input-row{display:flex;gap:7px;width:100%;margin-top:8px;flex-wrap:wrap;}
+.drive-connect-btn{font-family:'Bangers',cursive;font-size:0.95rem;letter-spacing:1px;background:linear-gradient(135deg,#16A34A,#1D4ED8);color:#fff;border:none;border-radius:8px;padding:8px 18px;cursor:pointer;white-space:nowrap;width:100%;}
+.drive-connect-btn:disabled{opacity:0.4;cursor:not-allowed;}
+.drive-progress-wrap{width:100%;margin-top:6px;display:none;}
+.drive-progress-wrap.show{display:block;}
+.drive-prog-bar{height:6px;background:#1D4ED8;border-radius:20px;width:0%;transition:width 0.3s;}
+.drive-prog-lbl{font-size:0.68rem;color:#64748B;font-weight:600;margin-top:3px;}
+</style>
+</head>
+<body>
+
+<div class="page-title">🔥 TEAM FUSION CHALLENGE 🔥</div>
+<div class="page-sub">Guru &amp; Jana · 2026</div>
+
+<div class="tabs">
+  <button class="tab-btn active" onclick="switchTab('task')">📋 My Tasks</button>
+  <button class="tab-btn" onclick="switchTab('board')">🏆 Leaderboard</button>
+  <button class="tab-btn atab" onclick="switchTab('admin')">⚙️ Admin</button>
+</div>
+
+<!-- ══════════════ TASK VIEW ══════════════ -->
+<div class="view active" id="view-task">
+  <div class="card">
+    <div class="card-header">
+      <div style="flex:1;">
+        <div class="team-label">Team Name</div>
+        <input class="tname-input" type="text" placeholder="ENTER NAME" maxlength="20" id="teamName">
+      </div>
+      <div class="score-pill">
+        <div class="score-lbl">Score</div>
+        <div class="score-val" id="scoreDisplay">0</div>
+      </div>
+    </div>
+
+    <!-- ── TEAM SETUP BANNER ── -->
+    <div id="teamSetupBanner" style="background:#1E3A5F;padding:12px 16px;border-bottom:2px solid #1D4ED8;">
+      <div style="font-size:0.75rem;font-weight:900;color:#93C5FD;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">👥 Team Members</div>
+      <input id="memberNames" type="text" placeholder="Enter member names, e.g. Amit, Priya, Ravi…" maxlength="150"
+        style="width:100%;font-family:'Nunito',sans-serif;font-size:0.88rem;font-weight:700;background:rgba(255,255,255,0.1);border:2px dashed rgba(255,255,255,0.3);border-radius:8px;padding:8px 12px;outline:none;color:#FFF;margin-bottom:8px;">
+      <button onclick="lockTeamDetails()"
+        style="width:100%;font-family:'Bangers',cursive;font-size:1rem;letter-spacing:2px;background:linear-gradient(135deg,#16A34A,#1D4ED8);color:#fff;border:none;border-radius:8px;padding:9px;cursor:pointer;">
+        🔒 LOCK TEAM &amp; START
+      </button>
+      <div style="font-size:0.65rem;color:#64748B;margin-top:5px;text-align:center;">Once locked, names cannot be changed during the challenge</div>
+    </div>
+    <div id="teamLockedBanner" style="display:none;background:#052e16;padding:8px 16px;border-bottom:2px solid #16A34A;">
+      <div style="font-size:0.78rem;font-weight:800;color:#4ADE80;">✅ Team locked &amp; ready! Good luck! 🎉</div>
+      <div id="memberNamesDisplay" style="font-size:0.72rem;color:#86EFAC;margin-top:2px;"></div>
+    </div>
+
+    <div class="tasks-updated-banner" id="tasksUpdatedBanner">✏️ Host updated the tasks — refreshed!</div>
+
+    <!-- Waiting splash — shown when no rounds are active -->
+    <div class="waiting-splash" id="waitingSplash">
+      <span class="ws-icon">⏳</span>
+      <div class="ws-title">WAITING FOR HOST</div>
+      <div class="ws-sub">Guru &amp; Jana will start each round shortly.<br>Tasks will appear here when your round goes live!</div>
+    </div>
+
+    <!-- ROUND: EASY -->
+    <div class="round-block sg" id="round-easy">
+      <div class="section-header"><span class="ico">🟢</span><h2>EASY ICEBREAKERS</h2><span class="pts-badge" id="badge-easy">10 pts each</span></div>
+      <div class="timer-strip"><span>⏱</span><span class="t-clock" id="clock-easy">--:--</span><div class="t-bar-bg"><div class="t-bar-fill" id="bar-easy" style="width:100%"></div></div><span class="t-lbl" id="tlbl-easy">LIVE</span></div>
+      <div class="locked-banner" id="lkd-easy">🔒 TIME'S UP — ROUND CLOSED</div>
+      <div class="tasks-list" id="tlist-easy"></div>
+    </div>
+    <div class="section-divider" id="div-easy" style="display:none;background:linear-gradient(90deg,#16A34A,#CA8A04)"></div>
+
+    <!-- ROUND: PHYSICAL -->
+    <div class="round-block sy" id="round-physical">
+      <div class="section-header"><span class="ico">🟡</span><h2>PHYSICAL TASKS</h2><span class="pts-badge" id="badge-physical">20 pts each</span></div>
+      <div class="timer-strip"><span>⏱</span><span class="t-clock" id="clock-physical">--:--</span><div class="t-bar-bg"><div class="t-bar-fill" id="bar-physical" style="width:100%"></div></div><span class="t-lbl" id="tlbl-physical">LIVE</span></div>
+      <div class="locked-banner" id="lkd-physical">🔒 TIME'S UP — ROUND CLOSED</div>
+      <div class="tasks-list" id="tlist-physical"></div>
+    </div>
+    <div class="section-divider" id="div-physical" style="display:none;background:linear-gradient(90deg,#CA8A04,#1D4ED8)"></div>
+
+    <!-- ROUND: CREATIVE -->
+    <div class="round-block sb" id="round-creative">
+      <div class="section-header"><span class="ico">🔵</span><h2>CREATIVE TASKS</h2><span class="pts-badge" id="badge-creative">30 pts each</span></div>
+      <div class="timer-strip"><span>⏱</span><span class="t-clock" id="clock-creative">--:--</span><div class="t-bar-bg"><div class="t-bar-fill" id="bar-creative" style="width:100%"></div></div><span class="t-lbl" id="tlbl-creative">LIVE</span></div>
+      <div class="locked-banner" id="lkd-creative">🔒 TIME'S UP — ROUND CLOSED</div>
+      <div class="tasks-list" id="tlist-creative"></div>
+    </div>
+    <div class="section-divider" id="div-creative" style="display:none;background:linear-gradient(90deg,#1D4ED8,#DC2626)"></div>
+
+    <!-- ROUND: BONUS -->
+    <div class="round-block sr" id="round-bonus">
+      <div class="section-header"><span class="ico">🔴</span><h2>CRAZY BONUS ROUND</h2><span class="pts-badge" id="badge-bonus">50 pts · 5 mins!</span></div>
+      <div class="timer-strip"><span>⏱</span><span class="t-clock" id="clock-bonus">--:--</span><div class="t-bar-bg"><div class="t-bar-fill" id="bar-bonus" style="width:100%"></div></div><span class="t-lbl" id="tlbl-bonus">LIVE</span></div>
+      <div class="locked-banner" id="lkd-bonus">🔒 TIME'S UP — BONUS CLOSED</div>
+      <div class="bonus-note">🎉 Host announces every 15 mins — First valid submission wins!</div>
+      <div class="tasks-list" id="tlist-bonus"></div>
+    </div>
+
+    <div class="confetti-msg" id="allDoneMsg">🏆 ALL TASKS DONE! LEGENDS! 🏆</div>
+
+    <div class="save-bar">
+      <div class="prog-wrap">
+        <div class="prog-lbl">Tasks Completed</div>
+        <div class="prog-bg"><div class="prog-fill" id="progressBar"></div></div>
+        <div class="prog-count" id="progressCount">0 / 0 tasks</div>
+      </div>
+      <button class="save-btn" id="saveBtn" onclick="saveScore()">💾 SAVE SCORE</button>
+    </div>
+    <div class="save-status" id="saveStatus"></div>
+
+    <!-- ── GOOGLE DRIVE UPLOAD PANEL ── -->
+    <!-- Upload progress bar — always visible when uploading -->
+    <div style="background:#1E293B;padding:0 15px;" id="driveProgOuter">
+      <div class="drive-progress-wrap" id="driveProgWrap">
+        <div class="drive-prog-bar" id="driveProgBar"></div>
+        <div class="drive-prog-lbl" id="driveProgLbl"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ LEADERBOARD ══════════════ -->
+<div class="view" id="view-board">
+  <div class="lb-card">
+    <div class="lb-hdr"><div class="lb-title">🏆 LIVE LEADERBOARD</div><div class="lb-sub">Score + Speed Bonus · First &amp; Fastest wins tiebreakers</div></div>
+    <div class="lb-legend">
+      <span class="lb-legend-title">⚡ Speed:</span>
+      <span class="lb-legend-item"><span class="speed-badge first">🥇 FIRST</span> First team to complete that task</span>
+      <span class="lb-legend-item"><span class="speed-badge boost">⚡ FAST</span> Top-3 fastest completions</span>
+      <span class="lb-legend-item"><span class="speed-badge fast">🕐 +pts</span> Speed bonus added to score</span>
+    </div>
+    <div class="lb-refresh-row"><button class="ref-btn" onclick="loadLeaderboard()">↻ Refresh</button></div>
+    <div class="lb-list" id="lbList"><div class="lb-loading">Loading scores…</div></div>
+    <div class="lb-updated" id="lbUpdated"></div>
+  </div>
+</div>
+
+<!-- ══════════════ ADMIN ══════════════ -->
+<div class="view" id="view-admin">
+  <div class="admin-card">
+    <div class="admin-hdr"><div class="admin-title">⚙️ HOST CONTROLS</div><div class="admin-subtitle">Timers · Task Editor · Live Results</div></div>
+    <div class="admin-body">
+      <div class="admin-warn">🔐 Admin-only — for Guru &amp; Jana. Teams use "My Tasks" tab.</div>
+      <div class="pass-row">
+        <input class="pass-input" type="password" placeholder="Enter admin password…" id="adminPass" onkeydown="if(event.key==='Enter')unlockAdmin()">
+        <button class="unlock-btn" onclick="unlockAdmin()">UNLOCK</button>
+      </div>
+      <div class="admin-locked-msg" id="adminLockedMsg">🔒 Enter password to access controls</div>
+
+      <div class="admin-controls" id="adminControls">
+        <div class="a-tabs">
+          <button class="a-tab-btn active" onclick="switchAdminTab('timers')">⏱ Timers</button>
+          <button class="a-tab-btn" onclick="switchAdminTab('tasks')">✏️ Edit Tasks</button>
+        </div>
+
+        <!-- TIMER PANEL -->
+        <div class="a-panel active" id="ap-timers">
+          <div class="a-sec-title">⏱ ROUND TIMERS</div>
+          <p style="font-size:0.8rem;color:#64748B;font-weight:700;margin-bottom:12px;">Starting a round makes it visible &amp; tickable for all teams. Stopping/expiry locks it.</p>
+
+          <div class="round-ctrl">
+            <div class="rch"><span class="rc-name" style="color:var(--green)">🟢 EASY ICEBREAKERS</span><span class="rc-status s-idle" id="st-easy">IDLE</span></div>
+            <div class="ctrl-row"><span class="ctrl-lbl">Duration:</span><input class="dur-input" type="number" id="dur-easy" value="20" min="1" max="120"><span class="ctrl-unit">mins</span><button class="ctrl-btn btn-go" id="bgo-easy" onclick="adminStart('easy')">▶ START</button><button class="ctrl-btn btn-stop" id="bst-easy" onclick="adminStop('easy')" disabled>■ STOP</button><button class="ctrl-btn btn-rst" onclick="adminReset('easy')">↺ RESET</button></div>
+          </div>
+          <div class="round-ctrl">
+            <div class="rch"><span class="rc-name" style="color:var(--yellow)">🟡 PHYSICAL TASKS</span><span class="rc-status s-idle" id="st-physical">IDLE</span></div>
+            <div class="ctrl-row"><span class="ctrl-lbl">Duration:</span><input class="dur-input" type="number" id="dur-physical" value="20" min="1" max="120"><span class="ctrl-unit">mins</span><button class="ctrl-btn btn-go" id="bgo-physical" onclick="adminStart('physical')">▶ START</button><button class="ctrl-btn btn-stop" id="bst-physical" onclick="adminStop('physical')" disabled>■ STOP</button><button class="ctrl-btn btn-rst" onclick="adminReset('physical')">↺ RESET</button></div>
+          </div>
+          <div class="round-ctrl">
+            <div class="rch"><span class="rc-name" style="color:var(--blue)">🔵 CREATIVE TASKS</span><span class="rc-status s-idle" id="st-creative">IDLE</span></div>
+            <div class="ctrl-row"><span class="ctrl-lbl">Duration:</span><input class="dur-input" type="number" id="dur-creative" value="25" min="1" max="120"><span class="ctrl-unit">mins</span><button class="ctrl-btn btn-go" id="bgo-creative" onclick="adminStart('creative')">▶ START</button><button class="ctrl-btn btn-stop" id="bst-creative" onclick="adminStop('creative')" disabled>■ STOP</button><button class="ctrl-btn btn-rst" onclick="adminReset('creative')">↺ RESET</button></div>
+          </div>
+          <div class="round-ctrl">
+            <div class="rch"><span class="rc-name" style="color:var(--red)">🔴 CRAZY BONUS</span><span class="rc-status s-idle" id="st-bonus">IDLE</span></div>
+            <div class="ctrl-row"><span class="ctrl-lbl">Duration:</span><input class="dur-input" type="number" id="dur-bonus" value="5" min="1" max="30"><span class="ctrl-unit">mins</span><button class="ctrl-btn btn-go" id="bgo-bonus" onclick="adminStart('bonus')">▶ START</button><button class="ctrl-btn btn-stop" id="bst-bonus" onclick="adminStop('bonus')" disabled>■ STOP</button><button class="ctrl-btn btn-rst" onclick="adminReset('bonus')">↺ RESET</button></div>
+          </div>
+          <div class="global-row">
+            <button class="g-btn g-go" onclick="adminStartAll()">▶ START ALL ROUNDS</button>
+            <button class="g-btn g-stop" onclick="adminStopAll()">■ STOP ALL</button>
+          </div>
+        </div>
+
+        <!-- TASK EDITOR PANEL -->
+        <div class="a-panel" id="ap-tasks">
+          <div class="a-sec-title purple">✏️ EDIT TASKS</div>
+          <p class="te-hint">Edit task names &amp; points, add or remove tasks. Hit <b>🚀 Publish</b> to push live to all teams instantly.</p>
+
+          <div class="te-sec">
+            <div class="te-hdr te-gh" onclick="toggleTE('easy')"><h3>🟢 EASY ICEBREAKERS</h3><span class="tgl">▼</span></div>
+            <div class="te-wrap" id="tew-easy"><div id="tel-easy"></div>
+              <div class="te-add-row"><input class="te-ai" id="ta-easy" placeholder="New task…" onkeydown="if(event.key==='Enter')addTE('easy')"><input class="te-ap" id="tp-easy" type="number" value="10" min="1"><button class="te-add-btn" onclick="addTE('easy')">+ ADD</button></div>
+            </div>
+          </div>
+          <div class="te-sec">
+            <div class="te-hdr te-yh" onclick="toggleTE('physical')"><h3>🟡 PHYSICAL TASKS</h3><span class="tgl">▼</span></div>
+            <div class="te-wrap" id="tew-physical"><div id="tel-physical"></div>
+              <div class="te-add-row"><input class="te-ai" id="ta-physical" placeholder="New task…" onkeydown="if(event.key==='Enter')addTE('physical')"><input class="te-ap" id="tp-physical" type="number" value="20" min="1"><button class="te-add-btn" onclick="addTE('physical')">+ ADD</button></div>
+            </div>
+          </div>
+          <div class="te-sec">
+            <div class="te-hdr te-bh" onclick="toggleTE('creative')"><h3>🔵 CREATIVE TASKS</h3><span class="tgl">▼</span></div>
+            <div class="te-wrap" id="tew-creative"><div id="tel-creative"></div>
+              <div class="te-add-row"><input class="te-ai" id="ta-creative" placeholder="New task…" onkeydown="if(event.key==='Enter')addTE('creative')"><input class="te-ap" id="tp-creative" type="number" value="30" min="1"><button class="te-add-btn" onclick="addTE('creative')">+ ADD</button></div>
+            </div>
+          </div>
+          <div class="te-sec">
+            <div class="te-hdr te-rh" onclick="toggleTE('bonus')"><h3>🔴 CRAZY BONUS ROUND</h3><span class="tgl">▼</span></div>
+            <div class="te-wrap" id="tew-bonus"><div id="tel-bonus"></div>
+              <div class="te-add-row"><input class="te-ai" id="ta-bonus" placeholder="New task…" onkeydown="if(event.key==='Enter')addTE('bonus')"><input class="te-ap" id="tp-bonus" type="number" value="50" min="1"><button class="te-add-btn" onclick="addTE('bonus')">+ ADD</button></div>
+            </div>
+          </div>
+
+          <div class="te-pub-row">
+            <button class="te-pub-btn" onclick="publishTasks()">🚀 PUBLISH TO ALL TEAMS</button>
+            <button class="te-res-btn" onclick="resetTasks()">↺ Reset</button>
+          </div>
+          <div class="te-status" id="teStatus"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════
+//  CONSTANTS & STATE
+// ══════════════════════════════════════════
+const ADMIN_PASSWORD = 'shiri@sportico26';
+const ROUNDS = ['easy','physical','creative','bonus'];
+
+// ── APPS SCRIPT DRIVE UPLOAD STATE ──
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwNR-5iqAkX1OLvCjFfuG_IapD1eNbeotbSV_l4T9rpwExZPxoEtEoO69mz_PmUkwDsDA/exec';
+let driveScriptUrl = APPS_SCRIPT_URL;
+
+// All requests go as GET to avoid CORS preflight blocks from GitHub Pages.
+async function gasGet(params) {
+  const url = APPS_SCRIPT_URL + '?' + new URLSearchParams(params).toString();
+  const res  = await fetch(url);
+  return res.json();
+}
+async function gasPost(data) {
+  // For chunk uploads (large binary data), send as real POST with no-cors
+  // then poll for result. For everything else, encode as base64 GET param.
+  if (data.action === 'uploadChunk') {
+    // POST with no-cors — response is opaque but GAS still processes it.
+    // We use a separate poll mechanism for the final chunk result.
+    try {
+      await fetch(APPS_SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify(data)
+      });
+      // For non-final chunks, return ok. For final chunk, poll for result.
+      const isLast = (Number(data.chunkIndex) === Number(data.totalChunks) - 1);
+      if (!isLast) return { ok: true };
+      // Poll GAS for the assembled file link
+      for (let i = 0; i < 15; i++) {
+        await new Promise(r => setTimeout(r, 2000));
+        try {
+          const poll = await gasGet({ action: 'getUploadResult', uploadId: data.uploadId });
+          if (poll.ok && poll.driveLink) return poll;
+          if (poll.error) return { ok: false, error: poll.error };
+        } catch(e) {}
+      }
+      return { ok: false, error: 'Upload timed out' };
+    } catch(e) {
+      return { ok: false, error: e.message };
+    }
+  }
+  // For all other actions: encode as base64 in GET param
+  try {
+    const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(data))));
+    const url = APPS_SCRIPT_URL + '?payload=' + encodeURIComponent(encoded);
+    const res = await fetch(url);
+    return res.json();
+  } catch(e) {
+    return { ok: false, error: e.message };
+  }
+}
+let driveConnected = true;   // always connected — no sign-in needed
+let teamFolderCreated = false;  // has the team's Drive folder been confirmed this session
+
+let score = 0, done = 0, totalTasks = 0;
+let checkedIds = new Set();
+// taskFiles: {taskId: {name, size, dataUrl, rawFile}} — stored in-memory only
+let taskFiles = {};
+// taskCompletions: {taskId: timestamp} — when each task was marked done
+let taskCompletions = {};
+let adminUnlocked = false;
+let lastTasksHash = null;
+
+const DEFAULT_TASKS = {
+  easy:[
+    {id:'e1',text:'Selfie with 5 people NOT in your team',pts:10},
+    {id:'e2',text:'Find someone from another state & take a photo',pts:10},
+    {id:'e3',text:'Group pic with resort staff',pts:10},
+    {id:'e4',text:'High-five 10 strangers',pts:10},
+  ],
+  physical:[
+    {id:'p1',text:'Human pyramid photo',pts:20},
+    {id:'p2',text:'Entire team jump photo',pts:20},
+    {id:'p3',text:'Train formation running video',pts:20},
+    {id:'p4',text:'Carry captain like a king – photo',pts:20},
+    {id:'p5',text:'15-sec team fitness drill video',pts:20},
+  ],
+  creative:[
+    {id:'c1',text:'20-sec company advertisement video',pts:30},
+    {id:'c2',text:'Slow-motion hero entry reel',pts:30},
+    {id:'c3',text:'Recreate a Bollywood scene',pts:30},
+    {id:'c4',text:'Make a team anthem video',pts:30},
+    {id:'c5',text:'Funny runway walk',pts:30},
+  ],
+  bonus:[
+    {id:'b1',text:'Dance with someone from another team',pts:50},
+    {id:'b2',text:'Frog jump race video',pts:50},
+    {id:'b3',text:'Entire team shout slogan near pool',pts:50},
+    {id:'b4',text:'Make security guard say your team name',pts:50},
+  ]
+};
+
+let editorTasks = JSON.parse(JSON.stringify(DEFAULT_TASKS));
+let liveTasks   = JSON.parse(JSON.stringify(DEFAULT_TASKS));
+
+// Timer state per round
+const localTimers = {};
+const roundState  = {};
+ROUNDS.forEach(r => { roundState[r] = {running:false, expired:false, endsAt:null, totalMs:0}; });
+
+// ══════════════════════════════════════════
+//  RENDER TASK LIST
+// ══════════════════════════════════════════
+function renderTaskList(roundId, tasks) {
+  const container = document.getElementById('tlist-' + roundId);
+  container.innerHTML = '';
+  tasks.forEach(t => {
+    const isDone = checkedIds.has(t.id);
+    const fileInfo = taskFiles[t.id];
+    const hasPanelOpen = false;
+
+    const item = document.createElement('div');
+    item.className = 'task-item' + (isDone ? ' done' : '');
+    item.dataset.id = t.id;
+    item.dataset.pts = t.pts;
+    item.dataset.round = roundId;
+
+    // Determine file icon
+    const isVideo = fileInfo && /\.(mp4|mov|avi|webm|mkv)/i.test(fileInfo.name);
+    const isImage = fileInfo && /\.(jpg|jpeg|png|gif|webp|heic)/i.test(fileInfo.name);
+    const fileIcon = isVideo ? '🎬' : isImage ? '🖼️' : fileInfo ? '📎' : '';
+
+    item.innerHTML = `
+      <div class="task-top" onclick="togglePanel(this)">
+        <div class="chk">${isDone ? '✓' : ''}</div>
+        <div class="task-txt">${t.text}</div>
+        <div class="pts-chip">+${t.pts}</div>
+        <span class="expand-icon">▼</span>
+      </div>
+      <div class="upload-panel">
+        <div class="up-label">📎 Upload proof <span class="req">*required to mark complete</span></div>
+        <div class="dropzone" id="dz-${t.id}" ondragover="dzDrag(event,this)" ondragleave="dzLeave(this)" ondrop="dzDrop(event,'${t.id}')">
+          <input type="file" accept="image/*,video/*,audio/*,.pdf,.doc,.docx" onchange="fileSelected(this,'${t.id}')">
+          <span class="dz-ico">☁️</span>
+          <div class="dz-main">Tap to select or drag &amp; drop</div>
+          <div class="dz-hint">Photo, video, any file — no size limit</div>
+        </div>
+        <div class="up-preview" id="prev-${t.id}">
+          <div class="prev-thumb" id="prevthumb-${t.id}">${fileIcon}</div>
+          <div class="prev-info">
+            <div class="prev-name" id="prevname-${t.id}">${fileInfo ? fileInfo.name : ''}</div>
+            <div class="prev-size" id="prevsize-${t.id}">${fileInfo ? formatBytes(fileInfo.size) : ''}</div>
+          </div>
+          <button class="prev-rm" onclick="removeFile('${t.id}',event)" title="Remove">✕</button>
+        </div>
+        <button class="up-confirm" id="upbtn-${t.id}" onclick="confirmTask('${t.id}',${t.pts},event)" ${!fileInfo || isDone ? 'disabled' : ''}>
+          ${isDone ? '✅ COMPLETED' : '✔ MARK AS DONE'}
+        </button>
+        <div class="up-done ${isDone && fileInfo ? 'show' : ''}" id="updone-${t.id}">
+          ✅ Proof attached: <span class="fname" title="${fileInfo ? fileInfo.name : ''}">${fileInfo ? fileInfo.name : ''}</span>
+        </div>
+      </div>`;
+
+    // Restore preview if file exists
+    if (fileInfo) {
+      item.querySelector('.up-preview').classList.add('show');
+      const thumb = item.querySelector(`#prevthumb-${t.id}`);
+      if (isImage && fileInfo.dataUrl) {
+        thumb.innerHTML = `<img src="${fileInfo.dataUrl}" style="width:42px;height:42px;border-radius:7px;object-fit:cover;">`;
+      }
+    }
+
+    // If task is done, lock the panel content visually
+    if (isDone) {
+      const dz = item.querySelector('.dropzone');
+      if (dz) { dz.style.pointerEvents = 'none'; dz.style.opacity = '0.5'; }
+    }
+
+    container.appendChild(item);
+  });
+}
+
+function renderAll() {
+  totalTasks = 0;
+  ROUNDS.forEach(r => { renderTaskList(r, liveTasks[r]); totalTasks += liveTasks[r].length; });
+  updateProgress();
+  updateWaitingSplash();
+}
+
+function updateProgress() {
+  const pct = totalTasks ? (done / totalTasks * 100) : 0;
+  document.getElementById('progressBar').style.width = pct + '%';
+  document.getElementById('progressCount').textContent = done + ' / ' + totalTasks + ' tasks';
+  document.getElementById('allDoneMsg').classList.toggle('show', totalTasks > 0 && done === totalTasks);
+}
+
+function updateWaitingSplash() {
+  const anyVisible = ROUNDS.some(r => document.getElementById('round-' + r).classList.contains('rb-visible'));
+  document.getElementById('waitingSplash').style.display = anyVisible ? 'none' : 'block';
+}
+
+// ══════════════════════════════════════════
+//  UPLOAD LOGIC
+// ══════════════════════════════════════════
+function togglePanel(topRow) {
+  const item = topRow.closest('.task-item');
+  const panel = item.querySelector('.upload-panel');
+  const isOpen = item.classList.contains('panel-open');
+  // Close all others
+  document.querySelectorAll('.task-item.panel-open').forEach(el => el.classList.remove('panel-open'));
+  if (!isOpen) item.classList.add('panel-open');
+}
+
+function dzDrag(e, el) { e.preventDefault(); el.classList.add('over'); }
+function dzLeave(el) { el.classList.remove('over'); }
+function dzDrop(e, taskId) {
+  e.preventDefault();
+  document.getElementById('dz-' + taskId)?.classList.remove('over');
+  const file = e.dataTransfer?.files?.[0];
+  if (file) processFile(file, taskId);
+}
+
+function fileSelected(input, taskId) {
+  const file = input.files?.[0];
+  if (file) processFile(file, taskId);
+}
+
+function processFile(file, taskId) {
+  // No size limit — read any file
+  const reader = new FileReader();
+  const isImage = /\.(jpg|jpeg|png|gif|webp|heic)/i.test(file.name) || file.type.startsWith('image/');
+  const isVideo = /\.(mp4|mov|avi|webm|mkv)/i.test(file.name) || file.type.startsWith('video/');
+
+  reader.onload = function(e) {
+    taskFiles[taskId] = { name: file.name, size: file.size, dataUrl: e.target.result, rawFile: file };
+
+    // Update preview
+    const prev = document.getElementById('prev-' + taskId);
+    const thumb = document.getElementById('prevthumb-' + taskId);
+    const nameEl = document.getElementById('prevname-' + taskId);
+    const sizeEl = document.getElementById('prevsize-' + taskId);
+
+    if (prev) prev.classList.add('show');
+    if (nameEl) nameEl.textContent = file.name;
+    if (sizeEl) sizeEl.textContent = formatBytes(file.size);
+    if (thumb) {
+      if (isImage) {
+        thumb.innerHTML = `<img src="${e.target.result}" style="width:42px;height:42px;border-radius:7px;object-fit:cover;">`;
+      } else {
+        thumb.textContent = isVideo ? '🎬' : '📎';
+      }
+    }
+
+    // Enable confirm button
+    const btn = document.getElementById('upbtn-' + taskId);
+    const item = btn?.closest('.task-item');
+    if (btn && item && !item.classList.contains('done')) btn.disabled = false;
+  };
+
+  // Read as data URL — works for ALL file types, no size restriction
+  reader.readAsDataURL(file);
+}
+
+function removeFile(taskId, e) {
+  e.stopPropagation();
+  delete taskFiles[taskId];
+  const prev = document.getElementById('prev-' + taskId);
+  if (prev) prev.classList.remove('show');
+  const btn = document.getElementById('upbtn-' + taskId);
+  if (btn) btn.disabled = true;
+}
+
+async function confirmTask(taskId, pts, e) {
+  e.stopPropagation();
+  const fileData = taskFiles[taskId];
+  if (!fileData) { alert('Please upload proof first!'); return; }
+  const item = document.querySelector(`[data-id="${taskId}"]`);
+  if (!item || item.classList.contains('done')) return;
+
+  const teamName = document.getElementById('teamName').value.trim().toUpperCase();
+  if (!teamName) { alert('Please enter your team name at the top first!'); return; }
+
+  // Mark done immediately for UX
+  item.classList.add('done');
+  const chk = item.querySelector('.chk');
+  if (chk) chk.textContent = '✓';
+  checkedIds.add(taskId);
+  score += pts; done++;
+  taskCompletions[taskId] = Date.now(); // ← record exact completion time
+
+  const btn = document.getElementById('upbtn-' + taskId);
+  if (btn) { btn.textContent = '⏫ UPLOADING…'; btn.disabled = true; }
+
+  const dz = item.querySelector('.dropzone');
+  if (dz) { dz.style.pointerEvents = 'none'; dz.style.opacity = '0.5'; }
+  item.classList.remove('panel-open');
+
+  document.getElementById('scoreDisplay').textContent = score;
+  updateProgress();
+
+  // ── DRIVE UPLOAD ──
+  const taskLabel = item.querySelector('.task-txt')?.textContent?.trim().substring(0, 40) || taskId;
+  let driveLink = null;
+
+  if (driveConnected && driveScriptUrl && fileData.rawFile) {
+    driveLink = await driveUploadChunked(fileData.rawFile, teamName, taskLabel, taskId);
+  }
+
+  // Show done badge
+  const doneBadge = document.getElementById('updone-' + taskId);
+  if (doneBadge) {
+    doneBadge.classList.add('show');
+    if (driveLink) {
+      doneBadge.innerHTML = `✅ Uploaded to Drive: <span class="fname" style="color:#16A34A;cursor:pointer;" onclick="window.open('${driveLink}','_blank')" title="View in Drive">${fileData.name} 📂</span>`;
+    } else {
+      const fname = doneBadge.querySelector('.fname');
+      if (fname) { fname.textContent = fileData.name; fname.title = fileData.name; }
+    }
+  }
+
+  if (btn) { btn.textContent = '✅ COMPLETED'; btn.disabled = true; }
+}
+
+function formatBytes(b) {
+  if (!b) return '';
+  if (b < 1024) return b + ' B';
+  if (b < 1048576) return (b/1024).toFixed(1) + ' KB';
+  if (b < 1073741824) return (b/1048576).toFixed(1) + ' MB';
+  return (b/1073741824).toFixed(2) + ' GB';
+}
+
+// ══════════════════════════════════════════
+//  GOOGLE DRIVE VIA APPS SCRIPT
+// ══════════════════════════════════════════
+const CHUNK_SIZE = 4 * 1024 * 1024; // 4 MB chunks (safe for Apps Script 6MB limit)
+
+function driveUrlChanged() {
+  // No-op — URL is pre-configured, no manual input needed
+}
+
+async function driveTestConnection() {
+  driveSetStatus('busy', '⏳ Connecting — sign in with your Google account if prompted…');
+  document.getElementById('driveConnectBtn').disabled = true;
+  try {
+    const res  = await fetch(APPS_SCRIPT_URL + '?action=ping');
+    const json = await res.json();
+
+    if (json.error === 'auth_required') {
+      driveSetStatus('err', '🔐 Sign-in required. <a href="' + APPS_SCRIPT_URL + '?action=ping" target="_blank" style="color:#FBBF24;font-weight:900;">Tap here to sign in</a> with your Google account, then tap <b>Connect</b> again.');
+      document.getElementById('driveConnectBtn').textContent = '🔗 Connect & Sign In';
+      document.getElementById('driveConnectBtn').disabled = false;
+      return;
+    }
+
+    if (json.ok && json.pong) {
+      driveConnected = true;
+      const signedInAs = json.email ? ' · <strong style="color:#4ADE80;">' + json.email + '</strong>' : '';
+      driveSetStatus('ok', '✅ Drive connected' + signedInAs + ' — proof files will upload automatically to your team\'s folder.');
+      document.getElementById('driveConnectBtn').textContent = '✓ Connected';
+      document.getElementById('driveConnectBtn').disabled = true;
+      const name = document.getElementById('teamName').value.trim().toUpperCase();
+      if (name && !teamFolderCreated) await driveEnsureFolder(name);
+    } else {
+      driveSetStatus('err', '❌ Unexpected response. Try again or contact the host.');
+      document.getElementById('driveConnectBtn').disabled = false;
+    }
+  } catch(err) {
+    driveSetStatus('err', '❌ Could not reach Drive. Check your internet connection and try again.');
+    document.getElementById('driveConnectBtn').textContent = '🔗 Connect & Sign In';
+    document.getElementById('driveConnectBtn').disabled = false;
+  }
+}
+
+function driveSetStatus(state, msg) {
+  const dot = document.getElementById('driveDot');
+  const txt = document.getElementById('driveTxt');
+  dot.className = 'drive-dot' + (state === 'ok' ? ' ok' : state === 'busy' ? ' busy' : state === 'err' ? ' err' : '');
+  txt.innerHTML = msg;
+}
+
+async function driveEnsureFolder(teamName) {
+  if (!driveConnected || !driveScriptUrl || teamFolderCreated) return true;
+  try {
+    const json = await gasGet({ action: 'ensureFolder', team: teamName });
+    if (json.ok) { teamFolderCreated = true; return true; }
+  } catch(e) {}
+  return false;
+}
+
+async function driveUploadChunked(file, teamName, taskLabel, taskId) {
+  const progWrap = document.getElementById('driveProgWrap');
+  const progBar  = document.getElementById('driveProgBar');
+  const progLbl  = document.getElementById('driveProgLbl');
+
+  progWrap.classList.add('show');
+  progBar.style.width = '0%';
+  progLbl.textContent = `Uploading ${file.name}…`;
+
+  const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
+  const uploadId = Date.now() + '_' + Math.random().toString(36).slice(2, 8);
+
+  try {
+    // Step 1: Init upload session on Apps Script side
+    const initJson = await gasPost({
+      action: 'initUpload',
+      team: teamName,
+      taskLabel,
+      fileName: file.name,
+      mimeType: file.type || 'application/octet-stream',
+      totalChunks,
+      uploadId
+    });
+    if (!initJson.ok) throw new Error(initJson.error || 'Init failed');
+
+    // Step 2: Upload chunks
+    for (let i = 0; i < totalChunks; i++) {
+      const start = i * CHUNK_SIZE;
+      const slice = file.slice(start, start + CHUNK_SIZE);
+      const b64 = await blobToBase64(slice);
+
+      const chunkJson = await gasPost({
+        action: 'uploadChunk',
+        uploadId,
+        chunkIndex: i,
+        totalChunks,
+        data: b64
+      });
+      if (!chunkJson.ok) throw new Error(chunkJson.error || 'Chunk ' + i + ' failed');
+
+      const pct = Math.round((i + 1) / totalChunks * 100);
+      progBar.style.width = pct + '%';
+      progLbl.textContent = `Uploading ${file.name}… ${pct}% (${i+1}/${totalChunks} parts)`;
+
+      // If final chunk, script returns the Drive link
+      if (chunkJson.driveLink) {
+        progLbl.textContent = `✅ ${file.name} uploaded!`;
+        setTimeout(() => progWrap.classList.remove('show'), 3000);
+        return chunkJson.driveLink;
+      }
+    }
+  } catch(err) {
+    console.error('Drive upload error:', err);
+    progLbl.textContent = '⚠️ Upload failed: ' + err.message;
+    setTimeout(() => progWrap.classList.remove('show'), 5000);
+    return null;
+  }
+}
+
+function blobToBase64(blob) {
+  return new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onload = () => res(r.result.split(',')[1]);
+    r.onerror = rej;
+    r.readAsDataURL(blob);
+  });
+}
+
+// ══════════════════════════════════════════
+//  SAVE SCORE
+// ══════════════════════════════════════════
+async function saveScore() {
+  const name = document.getElementById('teamName').value.trim().toUpperCase();
+  if (!name) { alert('Please enter your team name first!'); return; }
+  const btn = document.getElementById('saveBtn');
+  btn.disabled = true; btn.textContent = 'SAVING…';
+  try {
+    const members = lsGet('tc_memberNames', '');
+    const data = {
+      name, members, score, done, total: totalTasks,
+      checkedIds: [...checkedIds],
+      taskCompletions,
+      firstSavedAt: lsGet('tc_firstSavedAt_' + name.replace(/\s+/g,'_'), new Date().toISOString()),
+      savedAt: new Date().toISOString()
+    };
+    const json = await gasPost({ action: 'saveScore', teamName: name, data });
+    if (!json.ok) throw new Error(json.error || 'Save failed');
+    persistState();
+    const fsKey = 'tc_firstSavedAt_' + name.replace(/\s+/g,'_');
+    if (!lsGet(fsKey, null)) lsSet(fsKey, new Date().toISOString());
+    const st = document.getElementById('saveStatus');
+    st.textContent = `✅ "${name}" saved! Score: ${score} pts`;
+    st.classList.add('show');
+    setTimeout(() => st.classList.remove('show'), 3000);
+    if (driveConnected) await driveEnsureFolder(name);
+  } catch(err) { alert('Could not save. Try again.'); }
+  btn.disabled = false; btn.textContent = '💾 SAVE SCORE';
+}
+
+// ══════════════════════════════════════════
+//  TIMER DISPLAY
+// ══════════════════════════════════════════
+function fmt(ms) {
+  if (ms <= 0) return '00:00';
+  const s = Math.ceil(ms/1000), m = Math.floor(s/60), sec = s % 60;
+  return String(m).padStart(2,'0') + ':' + String(sec).padStart(2,'0');
+}
+
+function applyRoundUI(rid, st) {
+  const block  = document.getElementById('round-' + rid);
+  const clock  = document.getElementById('clock-' + rid);
+  const bar    = document.getElementById('bar-' + rid);
+  const lbl    = document.getElementById('tlbl-' + rid);
+  const lkd    = document.getElementById('lkd-' + rid);
+  const divEl  = document.getElementById('div-' + rid);
+
+  if (st.expired) {
+    block.classList.add('rb-visible', 'rb-locked');
+    lkd.classList.add('show');
+    clock.textContent = '00:00'; clock.classList.add('urgent');
+    bar.style.width = '0%'; bar.classList.add('urgent');
+    lbl.textContent = 'CLOSED';
+    if (divEl) divEl.style.display = 'block';
+    updateWaitingSplash();
+    return;
+  }
+
+  if (!st.running) {
+    // Hidden / reset
+    block.classList.remove('rb-visible','rb-locked');
+    lkd.classList.remove('show');
+    clock.textContent = '--:--'; clock.classList.remove('urgent');
+    bar.style.width = '100%'; bar.classList.remove('urgent');
+    lbl.textContent = 'WAITING';
+    if (divEl) divEl.style.display = 'none';
+    updateWaitingSplash();
+    return;
+  }
+
+  // Running
+  block.classList.add('rb-visible');
+  block.classList.remove('rb-locked');
+  lkd.classList.remove('show');
+  if (divEl) divEl.style.display = 'block';
+  const rem = Math.max(0, st.endsAt - Date.now());
+  const pct = Math.max(0, Math.min(100, rem / st.totalMs * 100));
+  clock.textContent = fmt(rem);
+  bar.style.width = pct + '%';
+  clock.classList.toggle('urgent', rem <= 60000);
+  bar.classList.toggle('urgent', rem <= 60000);
+  lbl.textContent = rem <= 60000 ? '⚠ HURRY!' : 'LIVE';
+  if (rem <= 0) expireRound(rid);
+  updateWaitingSplash();
+}
+
+function expireRound(rid) {
+  clearInterval(localTimers[rid]);
+  roundState[rid] = { running:false, expired:true, endsAt:null, totalMs:0 };
+  applyRoundUI(rid, roundState[rid]);
+}
+
+function startLocalTimer(rid, endsAt, totalMs) {
+  clearInterval(localTimers[rid]);
+  roundState[rid] = { running:true, expired:false, endsAt, totalMs };
+  applyRoundUI(rid, roundState[rid]);
+  localTimers[rid] = setInterval(() => {
+    if (roundState[rid].endsAt - Date.now() <= 0) { expireRound(rid); return; }
+    applyRoundUI(rid, roundState[rid]);
+  }, 500);
+}
+
+// ══════════════════════════════════════════
+//  POLL SHARED STATE (timers + tasks)
+// ══════════════════════════════════════════
+async function pollShared() {
+  try {
+    const json  = await gasGet({ action: 'getState' });
+    if (!json.ok || !json.state) return;
+    const state = json.state;
+
+    // ── Sync timers ──
+    if (state.timers) {
+      ROUNDS.forEach(rid => {
+        const rs = state.timers[rid]; if (!rs) return;
+        const local = roundState[rid];
+        if (rs.expired && !local.expired) { expireRound(rid); }
+        else if (rs.running && !local.running && !local.expired) { startLocalTimer(rid, rs.endsAt, rs.totalMs); }
+        else if (!rs.running && !rs.expired && (local.running || local.expired)) {
+          clearInterval(localTimers[rid]);
+          roundState[rid] = { running:false, expired:false, endsAt:null, totalMs:0 };
+          applyRoundUI(rid, roundState[rid]);
+        }
+      });
+    }
+
+    // ── Sync tasks ──
+    if (state.tasks) {
+      const raw  = JSON.stringify(state.tasks);
+      const hash = raw.length + '|' + raw.substring(0, 60);
+      if (hash !== lastTasksHash) {
+        const isFirst = (lastTasksHash === null);
+        lastTasksHash = hash;
+        liveTasks = state.tasks;
+        renderAll();
+        if (!isFirst) {
+          const b = document.getElementById('tasksUpdatedBanner');
+          b.classList.add('show');
+          setTimeout(() => b.classList.remove('show'), 4000);
+        }
+        if (adminUnlocked) { editorTasks = JSON.parse(JSON.stringify(state.tasks)); renderEditorAll(); }
+      }
+    }
+  } catch(e) {
+    console.warn('[pollShared error]', e.message);
+  }
+}
+
+setInterval(pollShared, 3000);  // poll every 3s
+pollShared();
+
+// ══════════════════════════════════════════
+//  ADMIN — UNLOCK
+// ══════════════════════════════════════════
+function unlockAdmin() {
+  if (document.getElementById('adminPass').value === ADMIN_PASSWORD) {
+    adminUnlocked = true;
+    document.getElementById('adminLockedMsg').style.display = 'none';
+    document.getElementById('adminControls').classList.add('show');
+    editorTasks = JSON.parse(JSON.stringify(liveTasks));
+    renderEditorAll(); syncAdminUI();
+  } else { alert('Wrong password!'); }
+}
+
+// ══════════════════════════════════════════
+//  ADMIN — TIMERS
+// ══════════════════════════════════════════
+async function saveTimerState() {
+  const timers = {};
+  ROUNDS.forEach(r => { timers[r] = { running:roundState[r].running, expired:roundState[r].expired, endsAt:roundState[r].endsAt, totalMs:roundState[r].totalMs }; });
+  // Merge with current tasks so getState returns both together
+  const state = { timers, tasks: liveTasks };
+  try {
+    const json = await gasPost({ action: 'setState', state });
+    if (!json.ok) console.warn('[saveTimerState] GAS error:', json.error);
+  } catch(e) {
+    console.warn('[saveTimerState error]', e.message);
+  }
+}
+
+async function adminStart(rid) {
+  const mins = parseInt(document.getElementById('dur-' + rid).value) || 5;
+  startLocalTimer(rid, Date.now() + mins * 60000, mins * 60000);
+  await saveTimerState(); syncAdminUI();
+}
+async function adminStop(rid) {
+  clearInterval(localTimers[rid]);
+  roundState[rid] = { running:false, expired:true, endsAt:null, totalMs:0 };
+  applyRoundUI(rid, roundState[rid]); await saveTimerState(); syncAdminUI();
+}
+async function adminReset(rid) {
+  clearInterval(localTimers[rid]);
+  roundState[rid] = { running:false, expired:false, endsAt:null, totalMs:0 };
+  applyRoundUI(rid, roundState[rid]); await saveTimerState(); syncAdminUI();
+}
+async function adminStartAll() { for (const r of ROUNDS) await adminStart(r); }
+function adminStopAll()  { ROUNDS.forEach(r => adminStop(r)); }
+
+function syncAdminUI() {
+  if (!adminUnlocked) return;
+  ROUNDS.forEach(r => {
+    const s = roundState[r];
+    const el = document.getElementById('st-' + r);
+    const gb = document.getElementById('bgo-' + r);
+    const sb = document.getElementById('bst-' + r);
+    if (s.expired)      { el.textContent='EXPIRED'; el.className='rc-status s-exp'; gb.disabled=true;  sb.disabled=true;  }
+    else if (s.running) { el.textContent='RUNNING'; el.className='rc-status s-run'; gb.disabled=true;  sb.disabled=false; }
+    else                { el.textContent='IDLE';    el.className='rc-status s-idle';gb.disabled=false; sb.disabled=true;  }
+  });
+}
+setInterval(syncAdminUI, 1000);
+
+// ══════════════════════════════════════════
+//  ADMIN — TASK EDITOR
+// ══════════════════════════════════════════
+function renderEditorRound(rid) {
+  const c = document.getElementById('tel-' + rid); c.innerHTML = '';
+  editorTasks[rid].forEach((t, idx) => {
+    const row = document.createElement('div'); row.className = 'te-row';
+    row.innerHTML = `
+      <input class="te-tinput" value="${t.text.replace(/&/g,'&amp;').replace(/"/g,'&quot;')}"
+        onchange="editorTasks['${rid}'][${idx}].text=this.value" placeholder="Task description">
+      <input class="te-pinput" type="number" value="${t.pts}" min="1"
+        onchange="editorTasks['${rid}'][${idx}].pts=parseInt(this.value)||0">
+      <span class="te-plbl">pts</span>
+      <button class="te-del" onclick="delTE('${rid}',${idx})" title="Remove">✕</button>`;
+    c.appendChild(row);
+  });
+}
+function renderEditorAll() { ROUNDS.forEach(r => renderEditorRound(r)); }
+
+function delTE(rid, idx) {
+  if (editorTasks[rid].length <= 1) { alert("Can't delete the last task!"); return; }
+  editorTasks[rid].splice(idx, 1); renderEditorRound(rid);
+}
+function addTE(rid) {
+  const ti = document.getElementById('ta-' + rid), pi = document.getElementById('tp-' + rid);
+  const text = ti.value.trim(); if (!text) { ti.focus(); return; }
+  editorTasks[rid].push({ id: rid[0] + Date.now(), text, pts: parseInt(pi.value) || 10 });
+  renderEditorRound(rid); ti.value = ''; ti.focus();
+}
+async function publishTasks() {
+  const st = document.getElementById('teStatus'); st.className = 'te-status';
+  st.textContent = '⏳ Publishing…'; st.style.display = 'block';
+  try {
+    const timers = {};
+    ROUNDS.forEach(r => { timers[r] = { running:roundState[r].running, expired:roundState[r].expired, endsAt:roundState[r].endsAt, totalMs:roundState[r].totalMs }; });
+    const state = { timers, tasks: editorTasks };
+    const json = await gasPost({ action: 'setState', state });
+    if (!json.ok) throw new Error(json.error || 'GAS returned error');
+    liveTasks    = JSON.parse(JSON.stringify(editorTasks));
+    lastTasksHash = null;  // force all devices to pick up change on next poll
+    renderAll();
+    st.textContent = '✅ Published! All devices will update within ~5 seconds.';
+    st.className = 'te-status ok';
+  } catch(e) {
+    st.textContent = '❌ Publish failed: ' + e.message + '. Check GAS deployment.';
+    st.className = 'te-status err';
+  }
+}
+function resetTasks() {
+  if (!confirm('Reset all tasks to defaults?')) return;
+  editorTasks = JSON.parse(JSON.stringify(DEFAULT_TASKS)); renderEditorAll();
+}
+function toggleTE(rid) {
+  const wrap = document.getElementById('tew-' + rid), hdr = wrap.previousElementSibling;
+  wrap.classList.toggle('hidden'); hdr.classList.toggle('collapsed');
+}
+
+// ══════════════════════════════════════════
+//  LEADERBOARD  (score + speed bonus)
+// ══════════════════════════════════════════
+// Speed bonus: up to MAX_SPEED_BONUS pts per completed task.
+// Awarded by ranking ALL teams' completion time for each task —
+// 1st gets MAX, 2nd gets MAX*0.6, 3rd gets MAX*0.3, rest get 0.
+const MAX_SPEED_BONUS = 5; // bonus pts per task for being first
+
+function calcSpeedBonuses(teams) {
+  // Collect every (taskId, team, timestamp) triple
+  const taskMap = {}; // taskId → [{teamName, ts}]
+  teams.forEach(t => {
+    if (!t.taskCompletions) return;
+    Object.entries(t.taskCompletions).forEach(([tid, ts]) => {
+      if (!taskMap[tid]) taskMap[tid] = [];
+      taskMap[tid].push({ teamName: t.name, ts: Number(ts) });
+    });
+  });
+
+  // For each task, sort teams by completion time and assign bonus pts
+  const bonusMap = {}; // teamName → total speed bonus
+  const firstMap = {}; // teamName → [taskIds where they were 1st]
+  const fastMap  = {}; // teamName → [taskIds where they were top-3]
+
+  Object.entries(taskMap).forEach(([tid, entries]) => {
+    entries.sort((a, b) => a.ts - b.ts); // earliest first
+    entries.forEach((e, i) => {
+      const nm = e.teamName;
+      if (!bonusMap[nm]) bonusMap[nm] = 0;
+      if (i === 0) {
+        bonusMap[nm] += MAX_SPEED_BONUS;
+        if (!firstMap[nm]) firstMap[nm] = [];
+        firstMap[nm].push(tid);
+      } else if (i === 1) {
+        bonusMap[nm] += Math.round(MAX_SPEED_BONUS * 0.6);
+        if (!fastMap[nm]) fastMap[nm] = [];
+        fastMap[nm].push(tid);
+      } else if (i === 2) {
+        bonusMap[nm] += Math.round(MAX_SPEED_BONUS * 0.3);
+        if (!fastMap[nm]) fastMap[nm] = [];
+        fastMap[nm].push(tid);
+      }
+    });
+  });
+
+  return { bonusMap, firstMap, fastMap };
+}
+
+async function loadLeaderboard() {
+  const list = document.getElementById('lbList');
+  list.innerHTML = '<div class="lb-loading">Loading…</div>';
+  try {
+    const json = await gasGet({ action: 'getScores' });
+    if (!json.ok || !json.scores) {
+      list.innerHTML = '<div class="lb-empty">No teams yet. Be the first! 🚀</div>';
+      return;
+    }
+    const scores = json.scores;
+    if (!Object.keys(scores).length) {
+      list.innerHTML = '<div class="lb-empty">No teams yet. Be the first! 🚀</div>';
+      return;
+    }
+    const teams = Object.values(scores);
+
+    // Calculate per-task speed bonuses across ALL teams
+    const { bonusMap, firstMap, fastMap } = calcSpeedBonuses(teams);
+
+    // Augment teams with their speed bonus and total score
+    teams.forEach(t => {
+      t.speedBonus = bonusMap[t.name] || 0;
+      t.totalScore = t.score + t.speedBonus;
+      t.firstCount = (firstMap[t.name] || []).length;
+      t.fastCount  = (fastMap[t.name]  || []).length;
+    });
+
+    // Sort: totalScore DESC → firstCount DESC → fastCount DESC → savedAt ASC (earlier = better)
+    teams.sort((a, b) => {
+      if (b.totalScore !== a.totalScore) return b.totalScore - a.totalScore;
+      if (b.firstCount !== a.firstCount) return b.firstCount - a.firstCount;
+      if (b.fastCount  !== a.fastCount)  return b.fastCount  - a.fastCount;
+      return new Date(a.savedAt) - new Date(b.savedAt); // earlier save wins
+    });
+
+    const max = teams[0]?.totalScore || 1;
+    list.innerHTML = '';
+
+    teams.forEach((t, i) => {
+      const rank = i + 1;
+      const rc   = rank <= 3 ? `r${rank}` : '';
+      const em   = rank===1 ? '🥇' : rank===2 ? '🥈' : rank===3 ? '🥉' : `#${rank}`;
+
+      // Speed badges
+      let badges = '';
+      if (t.firstCount > 0) badges += `<span class="speed-badge first">🥇 FIRST ×${t.firstCount}</span>`;
+      if (t.fastCount  > 0) badges += `<span class="speed-badge boost">⚡ FAST ×${t.fastCount}</span>`;
+      if (t.speedBonus > 0) badges += `<span class="speed-badge fast">+${t.speedBonus} speed pts</span>`;
+      const badgeRow = badges ? `<div class="lb-speed-row">${badges}</div>` : '';
+
+      // Score breakdown
+      const breakdown = t.speedBonus > 0
+        ? `<div class="lb-score-breakdown">${t.score} pts + ${t.speedBonus} speed</div>`
+        : `<div class="lb-score-breakdown">${t.score} pts</div>`;
+
+      const row = document.createElement('div');
+      row.className = `lb-row ${rc}`;
+      row.innerHTML = `
+        <div class="rank-ico">${em}</div>
+        <div class="lb-info">
+          <div class="lb-tname">${t.name}</div>
+          <div class="lb-tcount">${t.done} / ${t.total || totalTasks} tasks · saved ${new Date(t.savedAt).toLocaleTimeString()}</div>
+          ${badgeRow}
+          <div class="lb-bar-bg"><div class="lb-bar-fill" style="width:${Math.round(t.totalScore / max * 100)}%"></div></div>
+        </div>
+        <div class="lb-score-col">
+          <div class="lb-total-score">${t.totalScore}</div>
+          ${breakdown}
+        </div>`;
+      list.appendChild(row);
+    });
+
+    document.getElementById('lbUpdated').textContent = 'Refreshed: ' + new Date().toLocaleTimeString();
+  } catch(e) {
+    list.innerHTML = '<div class="lb-empty">Error loading. Try refreshing.</div>';
+  }
+}
+
+// ══════════════════════════════════════════
+//  TAB SWITCHERS
+// ══════════════════════════════════════════
+function switchTab(tab) {
+  document.querySelectorAll('.tab-btn').forEach((b,i) => b.classList.toggle('active', ['task','board','admin'][i] === tab));
+  ['task','board','admin'].forEach(t => document.getElementById('view-' + t).classList.toggle('active', t === tab));
+  if (tab === 'board') loadLeaderboard();
+}
+function switchAdminTab(tab) {
+  document.querySelectorAll('.a-tab-btn').forEach((b,i) => b.classList.toggle('active', ['timers','tasks'][i] === tab));
+  document.querySelectorAll('.a-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('ap-' + tab).classList.add('active');
+}
+
+// ══════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════
+renderAll();
+loadLeaderboard();
+</script>
+</body>
+</html>

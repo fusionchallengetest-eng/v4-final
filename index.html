@@ -867,6 +867,37 @@ function driveUrlChanged() {
   // No-op — URL is pre-configured, no manual input needed
 }
 
+function lockTeamDetails() {
+  const name    = document.getElementById('teamName').value.trim().toUpperCase();
+  const members = document.getElementById('memberNames').value.trim();
+  if (!name)    { alert('Please enter your Team Name at the top first!'); return; }
+  if (!members) { alert('Please enter your team member names!'); return; }
+
+  teamLocked     = true;
+  driveConnected = true;
+  lsSet('tc_teamName', name);
+  lsSet('tc_memberNames', members);
+  lsSet('tc_teamLocked', true);
+  persistState();
+
+  applyTeamLockedUI();
+  driveEnsureFolder(name);
+}
+
+function applyTeamLockedUI() {
+  const setup   = document.getElementById('teamSetupBanner');
+  const locked  = document.getElementById('teamLockedBanner');
+  const tname   = document.getElementById('teamName');
+  const mnames  = document.getElementById('memberNames');
+  const display = document.getElementById('memberNamesDisplay');
+
+  if (setup)   setup.style.display  = 'none';
+  if (locked)  locked.style.display = 'block';
+  if (tname)   { tname.readOnly = true; tname.style.opacity = '0.75'; }
+  if (mnames)  mnames.readOnly = true;
+  if (display) display.textContent = '👥 ' + (lsGet('tc_memberNames', '') || '');
+}
+
 async function driveTestConnection() {
   driveSetStatus('busy', '⏳ Connecting — sign in with your Google account if prompted…');
   document.getElementById('driveConnectBtn').disabled = true;
@@ -1399,6 +1430,38 @@ function switchAdminTab(tab) {
 // ══════════════════════════════════════════
 renderAll();
 loadLeaderboard();
+
+// ── RESTORE PERSISTED STATE ON PAGE LOAD ──
+(function restoreOnLoad() {
+  // Restore team name
+  const savedName = lsGet('tc_teamName', '');
+  if (savedName) {
+    const el = document.getElementById('teamName');
+    if (el) el.value = savedName;
+  }
+
+  // Restore member names
+  const savedMembers = lsGet('tc_memberNames', '');
+  if (savedMembers) {
+    const el = document.getElementById('memberNames');
+    if (el) el.value = savedMembers;
+  }
+
+  // Restore score display
+  document.getElementById('scoreDisplay').textContent = score;
+  updateProgress();
+
+  // Restore locked state
+  if (teamLocked) {
+    driveConnected = true;
+    applyTeamLockedUI();
+  }
+})();
+
+// Save team name to localStorage as user types (only if not locked)
+document.getElementById('teamName').addEventListener('input', function() {
+  if (!teamLocked) lsSet('tc_teamName', this.value.trim().toUpperCase());
+});
 </script>
 </body>
 </html>

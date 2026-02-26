@@ -539,7 +539,7 @@ const ADMIN_PASSWORD = 'shiri@sportico26';
 const ROUNDS = ['easy','physical','creative','bonus'];
 
 // ── APPS SCRIPT DRIVE UPLOAD STATE ──
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwNR-5iqAkX1OLvCjFfuG_IapD1eNbeotbSV_l4T9rpwExZPxoEtEoO69mz_PmUkwDsDA/exec';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw8nfVC6mwJFMidAXxEMYLHUItwqaBVWGLSco-RgoiMEbAG6DjzJdZyyvnP8IXi7uJc3A/exec';
 let driveScriptUrl = APPS_SCRIPT_URL;
 
 // All requests go as GET to avoid CORS preflight blocks from GitHub Pages.
@@ -588,17 +588,34 @@ async function gasPost(data) {
     return { ok: false, error: e.message };
   }
 }
-let driveConnected = true;   // always connected — no sign-in needed
-let teamFolderCreated = false;  // has the team's Drive folder been confirmed this session
+// ── localStorage helpers ──
+function lsGet(k, fallback) {
+  try { const v = localStorage.getItem(k); return v !== null ? JSON.parse(v) : fallback; }
+  catch(e) { return fallback; }
+}
+function lsSet(k, v) {
+  try { localStorage.setItem(k, JSON.stringify(v)); } catch(e) {}
+}
+function persistState() {
+  lsSet('tc_score', score);
+  lsSet('tc_done', done);
+  lsSet('tc_checkedIds', [...checkedIds]);
+  lsSet('tc_taskCompletions', taskCompletions);
+  lsSet('tc_teamLocked', teamLocked);
+}
 
-let score = 0, done = 0, totalTasks = 0;
-let checkedIds = new Set();
-// taskFiles: {taskId: {name, size, dataUrl, rawFile}} — stored in-memory only
-let taskFiles = {};
-// taskCompletions: {taskId: timestamp} — when each task was marked done
-let taskCompletions = {};
-let adminUnlocked = false;
-let lastTasksHash = null;
+// ── App state — restored from localStorage on load ──
+let teamLocked      = lsGet('tc_teamLocked', false);
+let driveConnected  = true;
+let teamFolderCreated = false;
+let score           = lsGet('tc_score', 0);
+let done            = lsGet('tc_done', 0);
+let totalTasks      = 0;
+let checkedIds      = new Set(lsGet('tc_checkedIds', []));
+let taskFiles       = {};
+let taskCompletions = lsGet('tc_taskCompletions', {});
+let adminUnlocked   = false;
+let lastTasksHash   = null;
 
 const DEFAULT_TASKS = {
   easy:[
@@ -881,7 +898,10 @@ function lockTeamDetails() {
   persistState();
 
   applyTeamLockedUI();
-  driveEnsureFolder(name);
+  // Create team folder in Drive immediately on lock
+  driveEnsureFolder(name).then(() => {
+    console.log('Team folder ready in Drive');
+  });
 }
 
 function applyTeamLockedUI() {
@@ -938,13 +958,14 @@ function driveSetStatus(state, msg) {
   txt.innerHTML = msg;
 }
 
-async function driveEnsureFolder(teamName) {
-  if (!driveConnected || !driveScriptUrl || teamFolderCreated) return true;
+async function driveEnsureFolder(teamName, taskLabel) {
   try {
-    const json = await gasGet({ action: 'ensureFolder', team: teamName });
-    if (json.ok) { teamFolderCreated = true; return true; }
-  } catch(e) {}
-  return false;
+    const params = { action: 'ensureFolder', team: teamName };
+    if (taskLabel) params.taskLabel = taskLabel;
+    const json = await gasGet(params);
+    if (json.ok && !taskLabel) teamFolderCreated = true;
+    return json.ok ? json.folderId : null;
+  } catch(e) { return null; }
 }
 
 async function driveUploadChunked(file, teamName, taskLabel, taskId) {
@@ -960,7 +981,10 @@ async function driveUploadChunked(file, teamName, taskLabel, taskId) {
   const uploadId = Date.now() + '_' + Math.random().toString(36).slice(2, 8);
 
   try {
-    // Step 1: Init upload session on Apps Script side
+    // Step 1: Ensure task subfolder exists in Drive
+    await driveEnsureFolder(teamName, taskLabel);
+
+    // Step 2: Init upload session on Apps Script side
     const initJson = await gasPost({
       action: 'initUpload',
       team: teamName,
